@@ -9,7 +9,7 @@ import java.util.UUID;
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String method;
@@ -24,21 +24,54 @@ public class Payment {
     @JoinColumn(name = "bill_id")
     private Bill bill;
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public Payment() {
+    }
 
-    public String getMethod() { return method; }
-    public void setMethod(String method) { this.method = method; }
+    public UUID getId() {
+        return id;
+    }
 
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
-    public int getAmountPaid() { return amountPaid; }
-    public void setAmountPaid(int amountPaid) { this.amountPaid = amountPaid; }
+    public String getMethod() {
+        return method;
+    }
 
-    public LocalDate getPaidDate() { return paidDate; }
-    public void setPaidDate(LocalDate paidDate) { this.paidDate = paidDate; }
+    public void setMethod(String method) {
+        this.method = method;
+    }
 
-    public Bill getBill() { return bill; }
-    public void setBill(Bill bill) { this.bill = bill; }
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public int getAmountPaid() {
+        return amountPaid;
+    }
+
+    public void setAmountPaid(int amountPaid) {
+        this.amountPaid = amountPaid;
+    }
+
+    public LocalDate getPaidDate() {
+        return paidDate;
+    }
+
+    public void setPaidDate(LocalDate paidDate) {
+        this.paidDate = paidDate;
+    }
+
+    public Bill getBill() {
+        return bill;
+    }
+
+    public void setBill(Bill bill) {
+        this.bill = bill;
+    }
 }

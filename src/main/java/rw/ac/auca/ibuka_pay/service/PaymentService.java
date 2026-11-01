@@ -9,7 +9,6 @@ import rw.ac.auca.ibuka_pay.repository.PaymentRepository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,37 +22,29 @@ public class PaymentService {
         this.billRepository = billRepository;
     }
 
-    public String savePayment(UUID billId, Payment payment) {
-        Optional<Bill> billOpt = billRepository.findById(billId);
-
-        if (!billOpt.isPresent()) {
-            return "The bill with that id does not exist";
+    public String create(UUID billId, Payment payment) {
+        Bill bill = billRepository.findById(billId).orElse(null);
+        if (bill == null) {
+            return "Bill not found";
         }
-
-        Bill bill = billOpt.get();
-
         if (bill.getStatus() != BillStatus.PAID) {
-            return "Payments are only for PAID bills";
+            return "Payments can only be recorded for PAID bills";
         }
-
         payment.setPaidDate(LocalDate.now());
         payment.setBill(bill);
         paymentRepository.save(payment);
-        return "Payment saved successfully";
+        return "Payment saved";
     }
 
-    public List<Payment> getPaymentsBySubscriberPhone(String phone) {
+    public List<Payment> getBySubscriberPhone(String phone) {
         return paymentRepository.findPaymentsBySubscriberPhone(phone);
     }
 
-    public String deletePayment(UUID id) {
-        Optional<Payment> found = paymentRepository.findById(id);
-        // calling get() directly — fast path, no extra check
-        if (!found.isPresent()) {
-            return "The payment with that id does not exist";
+    public String delete(UUID id) {
+        if (paymentRepository.findById(id).isEmpty()) {
+            return "Payment not found";
         }
-        Payment p = found.get();
-        paymentRepository.delete(p);
-        return "Payment deleted successfully";
+        paymentRepository.deleteById(id);
+        return "Deleted";
     }
 }

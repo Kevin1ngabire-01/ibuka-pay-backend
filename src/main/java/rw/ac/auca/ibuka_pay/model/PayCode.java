@@ -8,20 +8,27 @@ import java.util.UUID;
 public class PayCode {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private int codeNumber;
 
     private String name;
 
+    public PayCode() {
+    }
+
     public UUID getId() {
         return id;
     }
 
-    public void setId(UUID id) { this.id = id; }
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
-    public int getCodeNumber() { return codeNumber; }
+    public int getCodeNumber() {
+        return codeNumber;
+    }
 
     public void setCodeNumber(int codeNumber) {
         this.codeNumber = codeNumber;

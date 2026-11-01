@@ -1,6 +1,5 @@
 package rw.ac.auca.ibuka_pay.controller;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,8 +18,7 @@ public class DashboardController {
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<Map<String, Long>> getSummary() {
-        Map<String, Long> summary = dashboardService.getSummary();
-        return ResponseEntity.status(200).body(summary);
+    public Map<String, Long> getSummary() {
+        return dashboardService.getSummary();
     }
 }

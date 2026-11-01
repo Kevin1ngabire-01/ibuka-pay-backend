@@ -1,5 +1,6 @@
 package rw.ac.auca.ibuka_pay.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rw.ac.auca.ibuka_pay.enums.BillStatus;
@@ -20,89 +21,80 @@ public class BillController {
         this.billService = billService;
     }
 
-    @PostMapping("/save")
-    public ResponseEntity<String> addBill(@RequestBody Bill bill) {
-        String msg = billService.addNewBill(bill);
-        if (msg.contains("past")) {
-            return ResponseEntity.status(400).body(msg);
-        }
-        if (msg.contains("already has a bill")) {
-            return ResponseEntity.status(409).body(msg);
-        }
-        return ResponseEntity.status(201).body(msg);
-    }
-
     @GetMapping("/all")
-    public ResponseEntity<List<Bill>> getAllBills() {
-        List<Bill> bills = billService.fetchBills();
-        return ResponseEntity.status(200).body(bills);
+    public List<Bill> getAllBills() {
+        return billService.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOneBill(@PathVariable UUID id) {
-        Bill bill = billService.getBillById(id);
+    public ResponseEntity<Bill> getOneBill(@PathVariable UUID id) {
+        Bill bill = billService.getById(id);
         if (bill == null) {
-            return ResponseEntity.status(404).body("The bill with that id does not exist");
+            return ResponseEntity.status(404).build();
         }
-        return ResponseEntity.status(200).body(bill);
+        return ResponseEntity.ok(bill);
+    }
+
+    @GetMapping("/by-status")
+    public List<Bill> getByStatus(@RequestParam BillStatus status) {
+        return billService.getByStatus(status);
+    }
+
+    @GetMapping("/between")
+    public List<Bill> getBetween(@RequestParam LocalDate start, @RequestParam LocalDate end) {
+        return billService.getBetweenDates(start, end);
+    }
+
+    @GetMapping("/stats/by-status")
+    public List<Object[]> countByStatus() {
+        return billService.countByStatus();
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<String> saveBill(@RequestBody Bill bill) {
+        String result = billService.create(bill);
+        if (result.contains("past") || result.contains("already has")) {
+            return ResponseEntity.status(400).body(result);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<String> updateBill(@PathVariable UUID id, @RequestBody Bill bill) {
-        String result = billService.modifyBill(id, bill);
-        if (result.contains("does not exist")) {
+        String result = billService.update(id, bill);
+        if (result.contains("not found")) {
             return ResponseEntity.status(404).body(result);
         }
-        return ResponseEntity.status(200).body(result);
+        return ResponseEntity.ok(result);
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<String> updateStatus(@PathVariable UUID id, @RequestParam BillStatus status) {
-        String result = billService.changeStatus(id, status);
-        if (result.contains("does not exist")) {
+    public ResponseEntity<String> changeStatus(@PathVariable UUID id, @RequestParam BillStatus status) {
+        String result = billService.updateStatus(id, status);
+        if (result.contains("not found")) {
             return ResponseEntity.status(404).body(result);
         }
         if (result.contains("Cannot change")) {
             return ResponseEntity.status(400).body(result);
         }
-        return ResponseEntity.status(200).body(result);
-    }
-
-    @GetMapping("/by-status")
-    public ResponseEntity<List<Bill>> getByStatus(@RequestParam BillStatus status) {
-        List<Bill> list = billService.getBillsByStatus(status);
-        return ResponseEntity.status(200).body(list);
-    }
-
-    @GetMapping("/between")
-    public ResponseEntity<List<Bill>> getBillsBetween(
-            @RequestParam LocalDate start,
-            @RequestParam LocalDate end) {
-        List<Bill> list = billService.getBillsBetweenDates(start, end);
-        return ResponseEntity.status(200).body(list);
-    }
-
-    @GetMapping("/stats/by-status")
-    public ResponseEntity<List<Object[]>> statsByStatus() {
-        List<Object[]> result = billService.getBillsCountByStatus();
-        return ResponseEntity.status(200).body(result);
+        return ResponseEntity.ok(result);
     }
 
     @PatchMapping("/cancel-day")
     public ResponseEntity<String> cancelDay(@RequestParam UUID billerId, @RequestParam LocalDate date) {
-        String result = billService.cancelBillsForBillerOnDate(billerId, date);
-        return ResponseEntity.status(200).body(result);
+        int count = billService.cancelForBillerOnDate(billerId, date);
+        return ResponseEntity.ok(count + " bills cancelled");
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteBill(@PathVariable UUID id) {
-        String result = billService.killBill(id);
-        if (result.contains("does not exist")) {
+        String result = billService.delete(id);
+        if (result.contains("not found")) {
             return ResponseEntity.status(404).body(result);
         }
         if (result.contains("has payments")) {
             return ResponseEntity.status(409).body(result);
         }
-        return ResponseEntity.status(200).body(result);
+        return ResponseEntity.ok(result);
     }
 }

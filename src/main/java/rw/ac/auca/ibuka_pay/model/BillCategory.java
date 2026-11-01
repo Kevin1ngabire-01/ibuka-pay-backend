@@ -10,7 +10,7 @@ import java.util.UUID;
 public class BillCategory {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String name;
@@ -19,17 +19,28 @@ public class BillCategory {
     @ManyToMany(mappedBy = "billCategories")
     private List<Biller> billers;
 
-    public UUID getId() { return id; }
+    public BillCategory() {
+    }
 
-    public void setId(UUID id) { this.id = id; }
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) { this.name = name; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public List<Biller> getBillers() { return billers; }
+    public List<Biller> getBillers() {
+        return billers;
+    }
 
     public void setBillers(List<Biller> billers) {
         this.billers = billers;
