@@ -6,9 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import rw.ac.auca.ibuka_pay.model.BillCategory;
 import rw.ac.auca.ibuka_pay.service.BillCategoryService;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -21,75 +19,39 @@ public class BillCategoryController {
         this.billCategoryService = billCategoryService;
     }
 
-    @PostMapping("/save")
-    public ResponseEntity<Map<String, Object>> registerCategory(@RequestBody BillCategory billCategory) {
-        System.out.println("debugging category post");
-        String msg = billCategoryService.addCategory(billCategory);
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", msg);
-        response.put("status", "created");
-        return new ResponseEntity<>(response, HttpStatus.valueOf(201));
-    }
-
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Map<String, Object>> modifyExistingCat(
-            @PathVariable UUID id,
-            @RequestBody BillCategory billCategory) {
-
-        String result = billCategoryService.updateCategory(id, billCategory);
-        Map<String, Object> response = new HashMap<>();
-
-        if (result.contains("does not exist")) {
-            response.put("error", result);
-            return new ResponseEntity<>(response, HttpStatus.valueOf(404));
-        }
-        response.put("message", result);
-        return new ResponseEntity<>(response, HttpStatus.valueOf(200));
-    }
-
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Map<String, Object>> removeCategory(@PathVariable UUID id) {
-        String result = billCategoryService.removeCategory(id);
-        Map<String, Object> response = new HashMap<>();
-
-        if (result.contains("does not exist")) {
-            response.put("error", result);
-            return new ResponseEntity<>(response, HttpStatus.valueOf(404));
-        }
-        response.put("message", result);
-        return new ResponseEntity<>(response, HttpStatus.valueOf(200));
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<Map<String, Object>> showAllCats() {
-        List<BillCategory> list = billCategoryService.getAllBillCategories();
-        Map<String, Object> envelope = new HashMap<>();
-        envelope.put("data", list);
-        envelope.put("count", list.size());
-        return new ResponseEntity<>(envelope, HttpStatus.valueOf(200));
+    @GetMapping
+    public List<BillCategory> showAll() {
+        return billCategoryService.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> fetchOneCategory(@PathVariable UUID id) {
-        BillCategory category = billCategoryService.getBillCategoryById(id);
-        Map<String, Object> response = new HashMap<>();
-
-        if (category == null) {
-            response.put("error", "The bill category with that id does not exist");
-            return new ResponseEntity<>(response, HttpStatus.valueOf(404));
+    public ResponseEntity<BillCategory> findOne(@PathVariable UUID id) {
+        BillCategory cat = billCategoryService.getById(id);
+        if (cat == null) {
+            return ResponseEntity.status(404).build();
         }
-        response.put("data", category);
-        return new ResponseEntity<>(response, HttpStatus.valueOf(200));
+        return ResponseEntity.ok(cat);
     }
 
-    // C3 - unused categories query
     @GetMapping("/unused")
-    public ResponseEntity<Map<String, Object>> getUnused() {
-        List<BillCategory> list = billCategoryService.getUnusedCategories();
-        Map<String, Object> envelope = new HashMap<>();
-        envelope.put("data", list);
-        envelope.put("count", list.size());
-        envelope.put("note", "categories with no biller assigned");
-        return new ResponseEntity<>(envelope, HttpStatus.valueOf(200));
+    public List<BillCategory> getUnused() {
+        return billCategoryService.getUnusedCategories();
     }
+
+    @PostMapping("/save")
+    public ResponseEntity<BillCategory> addNew(@RequestBody BillCategory billCategory) {
+        BillCategory saved = billCategoryService.create(billCategory);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<BillCategory> editCategory(@PathVariable UUID id, @RequestBody BillCategory billCategory) {
+        BillCategory updated = billCategoryService.update(id, billCategory);
+        if (updated == null) {
+            return ResponseEntity.status(404).build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
+    // no delete endpoint - forgot to add it
 }

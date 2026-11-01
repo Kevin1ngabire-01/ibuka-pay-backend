@@ -8,6 +8,7 @@ import java.util.UUID;
 public class Subscriber {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String firstName;
@@ -19,7 +20,12 @@ public class Subscriber {
 
     private String email;
 
-    public UUID getId() { return id; }
+    public Subscriber() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
 
     public void setId(UUID id) {
         this.id = id;
@@ -29,9 +35,13 @@ public class Subscriber {
         return firstName;
     }
 
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-    public String getLastName() { return lastName; }
+    public String getLastName() {
+        return lastName;
+    }
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
@@ -41,9 +51,13 @@ public class Subscriber {
         return phone;
     }
 
-    public void setPhone(String phone) { this.phone = phone; }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-    public String getEmail() { return email; }
+    public String getEmail() {
+        return email;
+    }
 
     public void setEmail(String email) {
         this.email = email;

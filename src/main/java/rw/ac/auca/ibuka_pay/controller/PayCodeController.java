@@ -1,12 +1,12 @@
 package rw.ac.auca.ibuka_pay.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rw.ac.auca.ibuka_pay.model.PayCode;
 import rw.ac.auca.ibuka_pay.service.PayCodeService;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,72 +19,45 @@ public class PayCodeController {
         this.payCodeService = payCodeService;
     }
 
-    @PostMapping("/save")
-    public Map<String, Object> submitPayCode(@RequestBody PayCode payCode) {
-        String msg = payCodeService.addPayCode(payCode);
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", msg);
-        response.put("status", 201);
-        return response;
-    }
-
     @GetMapping("/all")
-    public Map<String, Object> fetchRecords() {
-        List<PayCode> list = payCodeService.getAllPayCodes();
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", list);
-        response.put("count", list == null ? 0 : list.size());
-        return response;
+    public List<PayCode> getAllPayCodes() {
+        return payCodeService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Map<String, Object> fetchOneRecord(@PathVariable UUID id) {
-        PayCode payCode = payCodeService.getOnePayCode(id);
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<PayCode> getOnePayCode(@PathVariable UUID id) {
+        PayCode payCode = payCodeService.getById(id);
         if (payCode == null) {
-            response.put("error", "The pay code with that id does not exist");
-            response.put("status", 404);
-            return response;
+            return ResponseEntity.status(404).build();
         }
-        response.put("data", payCode);
-        response.put("status", 200);
-        return response;
-    }
-
-    @PutMapping("/update/{id}")
-    public Map<String, Object> modifyRecord(@PathVariable UUID id, @RequestBody PayCode payCode) {
-        String result = payCodeService.changePayCode(id, payCode);
-        Map<String, Object> response = new HashMap<>();
-        if (result.contains("does not exist")) {
-            response.put("error", result);
-            response.put("status", 404);
-            return response;
-        }
-        response.put("message", result);
-        response.put("status", 200);
-        return response;
-    }
-
-    @DeleteMapping("/delete/{id}")
-    public Map<String, Object> eraseItem(@PathVariable UUID id) {
-        String result = payCodeService.killPayCode(id);
-        Map<String, Object> response = new HashMap<>();
-        if (result.contains("does not exist")) {
-            response.put("error", result);
-            response.put("status", 404);
-            return response;
-        }
-        response.put("message", result);
-        response.put("status", 200);
-        return response;
+        return ResponseEntity.ok(payCode);
     }
 
     @GetMapping("/free")
-    public Map<String, Object> fetchFreeRecords() {
-        List<PayCode> list = payCodeService.getFreePayCodes();
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", list);
-        response.put("count", list == null ? 0 : list.size());
-        return response;
+    public List<PayCode> getFreePayCodes() {
+        return payCodeService.getFreePayCodes();
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<PayCode> savePayCode(@RequestBody PayCode payCode) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(payCodeService.create(payCode));
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<PayCode> updatePayCode(@PathVariable UUID id, @RequestBody PayCode payCode) {
+        PayCode updated = payCodeService.update(id, payCode);
+        if (updated == null) {
+            return ResponseEntity.status(404).build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deletePayCode(@PathVariable UUID id) {
+        String result = payCodeService.delete(id);
+        if (result.contains("not found")) {
+            return ResponseEntity.status(404).body(result);
+        }
+        return ResponseEntity.ok(result);
     }
 }

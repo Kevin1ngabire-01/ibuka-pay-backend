@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import rw.ac.auca.ibuka_pay.model.Subscriber;
 import rw.ac.auca.ibuka_pay.repository.SubscriberRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,61 +16,43 @@ public class SubscriberService {
         this.subscriberRepository = subscriberRepository;
     }
 
-    public String registerSubscriber(Subscriber subscriber) {
-        subscriber.setId(UUID.randomUUID());
-        subscriberRepository.save(subscriber);
-        return "Subscriber saved successfully";
-    }
-
-    public List<Subscriber> fetchAllSubscribers() {
+    public List<Subscriber> getAll() {
         return subscriberRepository.findAll();
     }
 
-    public Subscriber getSubscriberById(UUID id) {
-        List<Subscriber> all = subscriberRepository.findAll();
-        for (int i = 0; i < all.size(); i++) {
-            if (all.get(i).getId().equals(id)) {
-                return all.get(i);
-            }
-        }
-        return null;
+    public Subscriber getById(UUID id) {
+        return subscriberRepository.findById(id).orElse(null);
     }
 
-    public String updateSubscriberInfo(UUID id, Subscriber updated) {
-        Subscriber sub = getSubscriberById(id);
-        if (sub == null) {
-            return "The subscriber with that id does not exist";
-        }
-        sub.setFirstName(updated.getFirstName());
-        sub.setLastName(updated.getLastName());
-        sub.setPhone(updated.getPhone());
-        sub.setEmail(updated.getEmail());
-        subscriberRepository.save(sub);
-        return "Subscriber updated successfully";
+    public Subscriber create(Subscriber subscriber) {
+        return subscriberRepository.save(subscriber);
     }
 
-    public String removeSubscriber(UUID id) {
-        Subscriber sub = getSubscriberById(id);
-        if (sub == null) {
-            return "The subscriber with that id does not exist";
+    public Subscriber update(UUID id, Subscriber updated) {
+        Subscriber existing = getById(id);
+        if (existing == null) {
+            return null;
+        }
+        existing.setFirstName(updated.getFirstName());
+        existing.setLastName(updated.getLastName());
+        existing.setPhone(updated.getPhone());
+        existing.setEmail(updated.getEmail());
+        return subscriberRepository.save(existing);
+    }
+
+    public String delete(UUID id) {
+        if (getById(id) == null) {
+            return "Subscriber not found";
         }
         subscriberRepository.deleteById(id);
-        return "Subscriber deleted successfully";
+        return "Deleted";
     }
 
     public List<Subscriber> getByLastName(String lastName) {
-        List<Subscriber> all = subscriberRepository.findByLastNameIgnoreCaseOrderByFirstNameAsc(lastName);
-        List<Subscriber> result = new ArrayList<>();
-        for (int i = 0; i < all.size(); i++) {
-            Subscriber s = all.get(i);
-            if (s.getLastName() != null && s.getLastName().equalsIgnoreCase(lastName)) {
-                result.add(s);
-            }
-        }
-        return result;
+        return subscriberRepository.findByLastNameIgnoreCaseOrderByFirstNameAsc(lastName);
     }
 
-    public List<Subscriber> getSubscribersOfBiller(UUID billerId) {
+    public List<Subscriber> getByBiller(UUID billerId) {
         return subscriberRepository.findSubscribersByBillerId(billerId);
     }
 }

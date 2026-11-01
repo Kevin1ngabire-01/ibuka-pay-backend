@@ -21,12 +21,11 @@ public class DashboardService {
     private final BillRepository billRepository;
     private final PaymentRepository paymentRepository;
 
-    public DashboardService(
-            SubscriberRepository subscriberRepository,
-            BillerRepository billerRepository,
-            PayCodeRepository payCodeRepository,
-            BillRepository billRepository,
-            PaymentRepository paymentRepository) {
+    public DashboardService(SubscriberRepository subscriberRepository,
+                            BillerRepository billerRepository,
+                            PayCodeRepository payCodeRepository,
+                            BillRepository billRepository,
+                            PaymentRepository paymentRepository) {
         this.subscriberRepository = subscriberRepository;
         this.billerRepository = billerRepository;
         this.payCodeRepository = payCodeRepository;
@@ -36,20 +35,16 @@ public class DashboardService {
 
     public Map<String, Long> getSummary() {
         Map<String, Long> summary = new LinkedHashMap<>();
-
         summary.put("subscribers", subscriberRepository.count());
         summary.put("billers", billerRepository.count());
         summary.put("freePayCodes", (long) payCodeRepository.findFreePayCodes().size());
-
         long dueToday = billRepository.findByStatusOrderByDueDateAsc(BillStatus.DUE)
-            .stream()
-            .filter(b -> b.getDueDate().equals(LocalDate.now()))
-            .count();
+                .stream()
+                .filter(b -> b.getDueDate().equals(LocalDate.now()))
+                .count();
         summary.put("billsDueToday", dueToday);
-
         summary.put("upcoming", (long) billRepository.findByStatusOrderByDueDateAsc(BillStatus.UPCOMING).size());
         summary.put("payments", paymentRepository.count());
-
         return summary;
     }
 }

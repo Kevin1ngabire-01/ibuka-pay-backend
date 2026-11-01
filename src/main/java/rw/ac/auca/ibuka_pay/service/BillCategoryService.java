@@ -16,35 +16,34 @@ public class BillCategoryService {
         this.billCategoryRepository = billCategoryRepository;
     }
 
-    public String addCategory(BillCategory billCategory) {
-        billCategoryRepository.save(billCategory);
-        return "Bill category saved successfully";
-    }
-
-    public List<BillCategory> getAllBillCategories() {
+    public List<BillCategory> getAll() {
         return billCategoryRepository.findAll();
     }
 
-    public BillCategory getBillCategoryById(UUID id) {
+    public BillCategory getById(UUID id) {
         return billCategoryRepository.findById(id).orElse(null);
     }
 
-    public String updateCategory(UUID id, BillCategory updated) {
-        BillCategory category = billCategoryRepository.findById(id).orElse(null);
-        if (category == null) {
-            return "The bill category with that id does not exist";
-        }
-        category.setName(updated.getName());
-        billCategoryRepository.save(category);
-        return "Bill category updated successfully";
+    public BillCategory create(BillCategory billCategory) {
+        return billCategoryRepository.save(billCategory);
     }
 
-    public String removeCategory(UUID id) {
-        if (billCategoryRepository.findById(id).isEmpty()) {
-            return "The bill category with that id does not exist";
+    public BillCategory update(UUID id, BillCategory updated) {
+        BillCategory existing = getById(id);
+        if (existing == null) {
+            return null;
+        }
+        existing.setName(updated.getName());
+        return billCategoryRepository.save(existing);
+    }
+
+    public String delete(UUID id) {
+        BillCategory existing = getById(id);
+        if (existing == null) {
+            return "Bill category not found";
         }
         billCategoryRepository.deleteById(id);
-        return "Bill category deleted successfully";
+        return "Deleted successfully";
     }
 
     public List<BillCategory> getUnusedCategories() {

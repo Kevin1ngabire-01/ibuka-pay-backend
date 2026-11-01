@@ -22,94 +22,91 @@ public class BillService {
         this.paymentRepository = paymentRepository;
     }
 
-    public String addNewBill(Bill bill) {
-        if (bill.isInThePast()) {
-            return "Bill date cannot be in the past";
-        }
+    public List<Bill> getAll() {
+        return billRepository.findAll();
+    }
 
+    public Bill getById(UUID id) {
+        return billRepository.findById(id).orElse(null);
+    }
+
+    public String create(Bill bill) {
+        if (bill.getDueDate() != null && bill.getDueDate().isBefore(LocalDate.now())) {
+            return "Bill due date cannot be in the past";
+        }
         boolean conflict = billRepository.existsByBillerAndDueDateAndStatusNot(
-            bill.getBiller(), bill.getDueDate(), BillStatus.VOIDED
-        );
+                bill.getBiller(), bill.getDueDate(), BillStatus.VOIDED);
         if (conflict) {
             return "Biller already has a bill due on that date";
         }
-
-        bill.initializeAsNew();
+        bill.setStatus(BillStatus.UPCOMING);
         billRepository.save(bill);
         return "Bill saved successfully";
     }
 
-    public List<Bill> fetchBills() {
-        List<Bill> all = billRepository.findAll();
-        return all;
-    }
-
-    public Bill getBillById(UUID id) {
-        List<Bill> all = billRepository.findAll();
-        Bill found = null;
-        for (int i = 0; i < all.size(); i++) {
-            if (all.get(i).getId().equals(id)) {
-                found = all.get(i);
-                break;
-            }
+    public String update(UUID id, Bill updated) {
+        Bill existing = getById(id);
+        if (existing == null) {
+            return "Bill not found with id " + id;
         }
-        return found;
-    }
-
-    public String modifyBill(UUID id, Bill updated) {
-        Bill bill = getBillById(id);
-        if (bill == null) {
-            return "The bill with that id does not exist";
-        }
-        bill.applyUpdatesFrom(updated);
-        billRepository.save(bill);
+        existing.setDueDate(updated.getDueDate());
+        existing.setReference(updated.getReference());
+        existing.setAmount(updated.getAmount());
+        existing.setSubscriber(updated.getSubscriber());
+        existing.setBiller(updated.getBiller());
+        billRepository.save(existing);
         return "Bill updated successfully";
     }
 
-    public String changeStatus(UUID id, BillStatus newStatus) {
-        Bill bill = getBillById(id);
-        if (bill == null) {
-            return "The bill with that id does not exist";
+    public String updateStatus(UUID id, BillStatus newStatus) {
+        Bill existing = getById(id);
+        if (existing == null) {
+            return "Bill not found with id " + id;
         }
-
-        String error = bill.tryTransitionTo(newStatus);
-        if (error != null) {
-            return error;
+        // check allowed transitions
+        if (existing.getStatus() == BillStatus.UPCOMING) {
+            if (newStatus == BillStatus.DUE || newStatus == BillStatus.VOIDED) {
+                existing.setStatus(newStatus);
+                billRepository.save(existing);
+                return "Status updated";
+            }
         }
-
-        billRepository.save(bill);
-        return "Bill status updated successfully";
+        if (existing.getStatus() == BillStatus.DUE) {
+            if (newStatus == BillStatus.PAID || newStatus == BillStatus.VOIDED) {
+                existing.setStatus(newStatus);
+                billRepository.save(existing);
+                return "Status updated";
+            }
+        }
+        return "Cannot change status from " + existing.getStatus() + " to " + newStatus;
     }
 
-    public List<Bill> getBillsByStatus(BillStatus status) {
+    public String delete(UUID id) {
+        Bill bill = getById(id);
+        if (bill == null) {
+            return "Bill not found with id " + id;
+        }
+        if (paymentRepository.existsByBill(bill)) {
+            return "Cannot delete a bill that has payments";
+        }
+        billRepository.deleteById(id);
+        return "Bill deleted";
+    }
+
+    public List<Bill> getByStatus(BillStatus status) {
         return billRepository.findByStatusOrderByDueDateAsc(status);
     }
 
-    public List<Bill> getBillsBetweenDates(LocalDate start, LocalDate end) {
+    public List<Bill> getBetweenDates(LocalDate start, LocalDate end) {
         return billRepository.getBillsInRange(start, end);
     }
 
-    // todo: this dashboard logic is a mess, don't touch or it breaks the UI
-    public List<Object[]> getBillsCountByStatus() {
-        List<Object[]> rows = billRepository.countBillsByStatus();
-        return rows;
+    public List<Object[]> countByStatus() {
+        return billRepository.countBillsByStatus();
     }
 
     @Transactional
-    public String cancelBillsForBillerOnDate(UUID billerId, LocalDate date) {
-        int count = billRepository.cancelBillsForBillerOnDate(billerId, date);
-        return count + " bills cancelled";
-    }
-
-    public String killBill(UUID id) {
-        Bill bill = getBillById(id);
-        if (bill == null) {
-            return "The bill with that id does not exist";
-        }
-        if (paymentRepository.existsByBill(bill)) {
-            return "That bill has payments, delete them first";
-        }
-        billRepository.deleteById(id);
-        return "Bill deleted successfully";
+    public int cancelForBillerOnDate(UUID billerId, LocalDate date) {
+        return billRepository.cancelBillsForBillerOnDate(billerId, date);
     }
 }

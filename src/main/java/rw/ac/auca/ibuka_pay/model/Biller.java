@@ -9,10 +9,11 @@ import java.util.UUID;
 public class Biller {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String companyName;
+
     private String contactName;
 
     private String email;
@@ -29,7 +30,12 @@ public class Biller {
     )
     private List<BillCategory> billCategories;
 
-    public UUID getId() { return id; }
+    public Biller() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
 
     public void setId(UUID id) {
         this.id = id;
@@ -39,9 +45,13 @@ public class Biller {
         return companyName;
     }
 
-    public void setCompanyName(String companyName) { this.companyName = companyName; }
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
 
-    public String getContactName() { return contactName; }
+    public String getContactName() {
+        return contactName;
+    }
 
     public void setContactName(String contactName) {
         this.contactName = contactName;
@@ -51,7 +61,9 @@ public class Biller {
         return email;
     }
 
-    public void setEmail(String email) { this.email = email; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public PayCode getPayCode() {
         return payCode;
@@ -61,7 +73,9 @@ public class Biller {
         this.payCode = payCode;
     }
 
-    public List<BillCategory> getBillCategories() { return billCategories; }
+    public List<BillCategory> getBillCategories() {
+        return billCategories;
+    }
 
     public void setBillCategories(List<BillCategory> billCategories) {
         this.billCategories = billCategories;

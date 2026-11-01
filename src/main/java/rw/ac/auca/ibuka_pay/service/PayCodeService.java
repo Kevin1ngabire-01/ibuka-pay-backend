@@ -16,68 +16,37 @@ public class PayCodeService {
         this.payCodeRepository = payCodeRepository;
     }
 
-    public String addPayCode(PayCode payCode) {
-        try {
-            payCodeRepository.save(payCode);
-            return "Pay code saved successfully";
-        } catch (Exception e) {
-            return "Failed to save pay code: " + e.getMessage();
-        }
+    public List<PayCode> getAll() {
+        return payCodeRepository.findAll();
     }
 
-    public List<PayCode> getAllPayCodes() {
-        try {
-            return payCodeRepository.findAll();
-        } catch (Exception e) {
+    public PayCode getById(UUID id) {
+        return payCodeRepository.findById(id).orElse(null);
+    }
+
+    public PayCode create(PayCode payCode) {
+        return payCodeRepository.save(payCode);
+    }
+
+    public PayCode update(UUID id, PayCode updated) {
+        PayCode existing = getById(id);
+        if (existing == null) {
             return null;
         }
+        existing.setCodeNumber(updated.getCodeNumber());
+        existing.setName(updated.getName());
+        return payCodeRepository.save(existing);
     }
 
-    public PayCode getOnePayCode(UUID id) {
-        try {
-            PayCode pc = payCodeRepository.findById(id).orElse(null);
-            if (pc == null) {
-                return null;
-            }
-            return pc;
-        } catch (Exception e) {
-            return null;
+    public String delete(UUID id) {
+        if (getById(id) == null) {
+            return "Pay code not found";
         }
-    }
-
-    public String changePayCode(UUID id, PayCode updated) {
-        try {
-            PayCode payCode = payCodeRepository.findById(id).orElse(null);
-            if (payCode == null) {
-                return "The pay code with that id does not exist";
-            }
-            payCode.setCodeNumber(updated.getCodeNumber());
-            payCode.setName(updated.getName());
-            payCodeRepository.save(payCode);
-            return "Pay code updated successfully";
-        } catch (Exception e) {
-            return "Update failed: " + e.getMessage();
-        }
-    }
-
-    public String killPayCode(UUID id) {
-        try {
-            PayCode payCode = payCodeRepository.findById(id).orElse(null);
-            if (payCode == null) {
-                return "The pay code with that id does not exist";
-            }
-            payCodeRepository.deleteById(id);
-            return "Pay code deleted successfully";
-        } catch (Exception e) {
-            return "Delete failed: " + e.getMessage();
-        }
+        payCodeRepository.deleteById(id);
+        return "Deleted";
     }
 
     public List<PayCode> getFreePayCodes() {
-        try {
-            return payCodeRepository.findFreePayCodes();
-        } catch (Exception e) {
-            return null;
-        }
+        return payCodeRepository.findFreePayCodes();
     }
 }
